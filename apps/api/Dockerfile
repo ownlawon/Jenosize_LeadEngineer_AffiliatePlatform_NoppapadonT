@@ -24,10 +24,18 @@ COPY apps/api ./apps/api
 COPY packages/adapters ./packages/adapters
 COPY packages/shared ./packages/shared
 
-RUN pnpm --filter @jenosize/api db:generate \
- && pnpm --filter @jenosize/api build \
- && test -f /app/apps/api/dist/main.js \
- && echo "Build OK: $(ls -la /app/apps/api/dist/main.js)"
+# Split into separate RUN steps so any failure shows the *exact* offending command.
+# Diagnostics: confirm devDeps (esp. @nestjs/cli) actually landed before nest build.
+RUN echo "=== node_modules/.bin (api) ===" \
+ && ls /app/apps/api/node_modules/.bin/ | head -40 \
+ && echo "=== nest CLI ===" \
+ && /app/apps/api/node_modules/.bin/nest --version \
+ && echo "=== tsc ===" \
+ && /app/apps/api/node_modules/.bin/tsc --version
+
+RUN pnpm --filter @jenosize/api db:generate
+RUN pnpm --filter @jenosize/api build
+RUN test -f /app/apps/api/dist/main.js && echo "Build OK: $(ls -la /app/apps/api/dist/main.js)"
 
 # --- Runner ---
 FROM node:20-bookworm-slim AS runner
