@@ -2,9 +2,10 @@
   "name": "@jenosize/adapters",
   "version": "0.1.0",
   "private": true,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
+    "build": "tsc && node -e \"require('fs').cpSync('src/fixtures','dist/fixtures',{recursive:true})\"",
     "lint": "eslint src --ext .ts",
     "test": "jest",
     "typecheck": "tsc --noEmit"

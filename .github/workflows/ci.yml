@@ -56,6 +56,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile=false
 
+      - name: Build workspace packages
+        run: |
+          pnpm --filter @jenosize/shared build
+          pnpm --filter @jenosize/adapters build
+
       - name: Generate Prisma client
         run: pnpm --filter @jenosize/api db:generate
 

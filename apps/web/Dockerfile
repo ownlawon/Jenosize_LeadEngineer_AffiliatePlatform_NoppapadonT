@@ -16,6 +16,11 @@ RUN pnpm install --frozen-lockfile=false --prod=false
 COPY apps/web ./apps/web
 COPY packages/shared ./packages/shared
 
+# Build shared first so its package.json main → dist/index.js resolves at
+# runtime (next build still transpiles via transpilePackages, but a built
+# dist also covers any non-Next consumers).
+RUN pnpm --filter @jenosize/shared build
+
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm --filter @jenosize/web build
 

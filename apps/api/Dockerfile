@@ -24,32 +24,15 @@ COPY apps/api ./apps/api
 COPY packages/adapters ./packages/adapters
 COPY packages/shared ./packages/shared
 
-# Split into separate RUN steps so any failure shows the *exact* offending command.
-# Diagnostics: confirm devDeps (esp. @nestjs/cli) actually landed before nest build.
-RUN echo "=== node_modules/.bin (api) ===" \
- && ls /app/apps/api/node_modules/.bin/ | head -40 \
- && echo "=== nest CLI ===" \
- && /app/apps/api/node_modules/.bin/nest --version \
- && echo "=== tsc ===" \
- && /app/apps/api/node_modules/.bin/tsc --version
+# Compile workspace packages first so api can resolve them at runtime via
+# package.json main → dist/index.js (without their dist, Node would fail
+# trying to require a .ts entry point).
+RUN pnpm --filter @jenosize/shared build \
+ && pnpm --filter @jenosize/adapters build
 
-RUN pnpm --filter @jenosize/api db:generate
-
-# Diagnostics: confirm src + tsconfig are present in the build context
-RUN echo "=== api/src/ ===" \
- && ls -la /app/apps/api/src/ | head -10 \
- && echo "=== api/ root ===" \
- && ls -la /app/apps/api/ | head -20
-
-# Compile via tsc directly (sidesteps any nest-CLI quirks like deleteOutDir
-# silently skipping emit in some Railpack/Metal builder edge cases) and
-# stream tsc's --listEmittedFiles so the build log proves compilation ran.
-RUN cd /app/apps/api \
- && ./node_modules/.bin/tsc -p tsconfig.build.json --listEmittedFiles \
- && echo "=== dist/ after tsc ===" \
- && ls -la /app/apps/api/dist/ | head -20
-
-RUN test -f /app/apps/api/dist/main.js && echo "Build OK: $(ls -la /app/apps/api/dist/main.js)"
+RUN pnpm --filter @jenosize/api db:generate \
+ && pnpm --filter @jenosize/api build \
+ && test -f /app/apps/api/dist/main.js
 
 # --- Runner ---
 FROM node:20-bookworm-slim AS runner
@@ -72,7 +55,5 @@ COPY --from=builder /app/packages ./packages
 EXPOSE 3001
 WORKDIR /app/apps/api
 
-# Run prisma migrations on boot, then start server.
-# `ls` runs first so the deploy log shows whether dist/main.js exists when the
-# container starts — surfaces missing-build issues without a silent crash loop.
-CMD ["sh", "-c", "ls -la dist/ || true; npx prisma migrate deploy && node dist/main.js"]
+# Run prisma migrations on boot, then start the server.
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
