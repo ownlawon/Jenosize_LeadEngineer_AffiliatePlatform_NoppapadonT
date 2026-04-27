@@ -6,13 +6,18 @@
 
 ## Demo
 
-- **Web (public + admin)**: _populate after deploy_ — e.g. `https://jenosize-web.up.railway.app`
-- **API + Swagger docs**: _populate after deploy_ — e.g. `https://jenosize-api.up.railway.app/api/docs`
-- **Admin login**: `admin@jenosize.test` / `ChangeMe!2025` (override via env in production)
+- **Web (public + admin)**: https://jenosizeweb-production.up.railway.app
+- **API**: https://jenosizeapi-production.up.railway.app
+- **Swagger / OpenAPI**: https://jenosizeapi-production.up.railway.app/api/docs
+- **Health**: https://jenosizeapi-production.up.railway.app/health
+- **Admin login** (`/admin/login`): `admin@jenosize.test` / `ChangeMe!2025` (override via env in production)
 - **Sample campaign**: _Summer Deal 2025_
 - **Test product flow**: Matcha Powder · Yoga Mat · Wireless Earbuds — Lazada vs Shopee
 
-The seed script (`pnpm db:seed`) provisions all of the above.
+> The admin user is auto-seeded on first boot from `ADMIN_EMAIL` /
+> `ADMIN_PASSWORD`. Sample products + campaign + links can be added via
+> the admin UI (quick-sample buttons on `/admin/products`) or by running
+> `pnpm db:seed` against the production database.
 
 ---
 
