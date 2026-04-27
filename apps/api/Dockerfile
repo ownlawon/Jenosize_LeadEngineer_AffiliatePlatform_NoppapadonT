@@ -1,5 +1,7 @@
 # --- Builder ---
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 WORKDIR /app
@@ -21,7 +23,9 @@ RUN pnpm --filter @jenosize/api db:generate \
  && pnpm --filter @jenosize/api build
 
 # --- Runner ---
-FROM node:20-alpine AS runner
+FROM node:20-bookworm-slim AS runner
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 WORKDIR /app
 

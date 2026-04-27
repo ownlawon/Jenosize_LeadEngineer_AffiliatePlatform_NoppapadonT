@@ -1,5 +1,5 @@
 # --- Builder ---
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 WORKDIR /app
@@ -17,15 +17,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm --filter @jenosize/web build
 
 # --- Runner ---
-FROM node:20-alpine AS runner
+FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copy minimal artifacts for `next start`
+# Copy minimal artifacts for `next start` (no /public dir in this project)
 COPY --from=builder /app/apps/web/.next ./apps/web/.next
-COPY --from=builder /app/apps/web/public ./apps/web/public 2>/dev/null || true
 COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 COPY --from=builder /app/apps/web/next.config.mjs ./apps/web/next.config.mjs
 COPY --from=builder /app/node_modules ./node_modules
