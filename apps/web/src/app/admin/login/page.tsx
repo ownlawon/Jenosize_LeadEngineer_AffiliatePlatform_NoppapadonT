@@ -16,8 +16,8 @@ export default function LoginPage() {
 function LoginForm() {
   const search = useSearchParams();
   const next = search.get('next') ?? '/admin/dashboard';
-  const [email, setEmail] = useState('admin@jenosize.test');
-  const [password, setPassword] = useState('ChangeMe!2025');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -77,6 +77,20 @@ function LoginForm() {
         <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? 'Signing in…' : 'Sign in'}
         </button>
+
+        <details className="rounded border border-dashed border-slate-300 p-3 text-xs text-slate-500">
+          <summary className="cursor-pointer font-medium text-slate-600">
+            Demo credentials (for reviewers)
+          </summary>
+          <div className="mt-2 space-y-1 font-mono">
+            <div>
+              <span className="text-slate-400">email:</span> admin@jenosize.test
+            </div>
+            <div>
+              <span className="text-slate-400">password:</span> ChangeMe!2025
+            </div>
+          </div>
+        </details>
       </form>
     </div>
   );
