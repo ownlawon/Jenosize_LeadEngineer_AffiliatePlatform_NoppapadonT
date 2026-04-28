@@ -3,18 +3,12 @@
 import { useState } from 'react';
 import type { LinkDto } from '@jenosize/shared';
 
-/**
- * Strip the protocol + host so the short *code* takes visual prominence,
- * while the full URL still ships in href + clipboard. Falls back to the
- * full string if URL parsing fails (e.g. SHORT_LINK_BASE_URL was set
- * without a scheme).
- */
-function displayPath(shortUrl: string): { host: string; path: string } {
+/** Best-effort host extraction; safe for malformed strings. */
+function hostOf(url: string): string {
   try {
-    const u = new URL(shortUrl);
-    return { host: u.host, path: u.pathname };
+    return new URL(url).host;
   } catch {
-    return { host: '', path: shortUrl };
+    return '';
   }
 }
 
@@ -36,9 +30,9 @@ export default function LinksTable({ links }: { links: LinkDto[] }) {
       <table className="min-w-full divide-y divide-slate-200 text-sm">
         <thead className="bg-slate-50">
           <tr>
-            <th className="px-4 py-3 text-left font-medium text-slate-600">Short URL</th>
+            <th className="px-4 py-3 text-left font-medium text-slate-600">Short link</th>
             <th className="px-4 py-3 text-left font-medium text-slate-600">Marketplace</th>
-            <th className="px-4 py-3 text-left font-medium text-slate-600">Clicks</th>
+            <th className="px-4 py-3 text-right font-medium text-slate-600">Clicks</th>
             <th className="px-4 py-3"></th>
           </tr>
         </thead>
@@ -51,34 +45,37 @@ export default function LinksTable({ links }: { links: LinkDto[] }) {
             </tr>
           ) : (
             links.map((l) => {
-              const { host, path } = displayPath(l.shortUrl);
+              const targetHost = hostOf(l.targetUrl);
               return (
                 <tr key={l.id}>
                   <td className="px-4 py-3">
-                    <a
-                      href={l.shortUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={l.shortUrl}
-                      className="inline-flex items-center gap-2 hover:underline"
-                    >
-                      <span className="font-mono text-base font-semibold text-brand-600">
-                        {path}
+                    <div className="flex flex-col gap-0.5">
+                      <a
+                        href={l.shortUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={l.shortUrl}
+                        className="font-mono text-sm font-semibold text-brand-600 hover:underline"
+                      >
+                        /go/{l.shortCode}
+                      </a>
+                      <span
+                        className="truncate text-xs text-slate-400"
+                        title={l.targetUrl}
+                      >
+                        → {targetHost || l.targetUrl}
                       </span>
-                      {host && (
-                        <span
-                          className="hidden text-[11px] text-slate-400 sm:inline"
-                          aria-hidden
-                        >
-                          on {host}
-                        </span>
-                      )}
-                    </a>
+                    </div>
                   </td>
-                  <td className="px-4 py-3">{l.marketplace}</td>
-                  <td className="px-4 py-3 tabular-nums">{l.clickCount ?? 0}</td>
+                  <td className="px-4 py-3">
+                    <span className="badge bg-slate-100 text-slate-700">{l.marketplace}</span>
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums">{l.clickCount ?? 0}</td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => copy(l.shortUrl, l.id)} className="btn-outline text-xs">
+                    <button
+                      onClick={() => copy(l.shortUrl, l.id)}
+                      className="btn-outline text-xs"
+                    >
                       {copied === l.id ? 'Copied' : 'Copy'}
                     </button>
                   </td>
