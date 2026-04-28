@@ -45,13 +45,33 @@ export default function ResetDemoButton() {
   }
 
   return (
-    <button
-      type="button"
-      onClick={reset}
-      disabled={loading}
-      className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-60"
-    >
-      {loading ? 'Resetting…' : 'Reset demo data'}
-    </button>
+    <div className="group/reset relative inline-flex items-center">
+      <button
+        type="button"
+        onClick={reset}
+        disabled={loading}
+        title="Wipes all products, campaigns, links, and clicks, then re-seeds the fixture catalogue. Admin users are preserved."
+        aria-describedby="reset-demo-hint"
+        className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-60"
+      >
+        {loading ? 'Resetting…' : 'Reset demo data'}
+        <span
+          aria-hidden
+          className="grid h-3.5 w-3.5 place-items-center rounded-full border border-red-300 text-[9px] font-semibold leading-none text-red-500"
+        >
+          ?
+        </span>
+      </button>
+      {/* Custom popover for hover/focus — visible on touch via title fallback. */}
+      <span
+        id="reset-demo-hint"
+        role="tooltip"
+        className="pointer-events-none absolute right-0 top-full z-20 mt-2 w-64 origin-top-right rounded-md border border-slate-200 bg-white p-3 text-[11px] leading-relaxed text-slate-600 opacity-0 shadow-lg transition-opacity duration-150 group-hover/reset:opacity-100 group-focus-within/reset:opacity-100"
+      >
+        Wipes <span className="font-medium text-slate-900">all products, campaigns, links, and clicks</span>,
+        then re-seeds the fixture catalogue (6 products + 1 campaign + 12 links).
+        Admin users are preserved.
+      </span>
+    </div>
   );
 }

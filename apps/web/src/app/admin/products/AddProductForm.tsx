@@ -73,14 +73,22 @@ export default function AddProductForm() {
 
   return (
     <div className="card space-y-4">
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-        <strong className="font-semibold">Demo mode:</strong> the catalogue is
-        backed by a mock adapter (per the assignment&apos;s allowance), so only
-        the six sample SKUs in the Quick Samples below resolve. Real
-        Lazada/Shopee URLs would work once the live affiliate adapter is
-        wired up — see{' '}
-        <code className="rounded bg-white/60 px-1 py-0.5">packages/adapters</code>.
-      </div>
+      <details className="group rounded-md border border-slate-200 bg-slate-50/60 text-xs text-slate-600 transition-colors open:border-amber-200 open:bg-amber-50/60 open:text-amber-800">
+        <summary className="flex cursor-pointer list-none select-none items-center gap-2 px-3 py-2 [&::-webkit-details-marker]:hidden">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+          <span className="font-medium">Demo mode</span>
+          <span className="text-slate-400 group-open:hidden">— mock catalogue, six sample SKUs</span>
+          <span className="ml-auto text-slate-400 group-open:hidden">Show details</span>
+          <span className="ml-auto hidden text-amber-700 group-open:inline">Hide</span>
+        </summary>
+        <p className="border-t border-amber-200/60 px-3 py-2 leading-relaxed">
+          The catalogue is backed by a mock adapter (per the assignment&apos;s
+          allowance), so only the six sample SKUs in the Quick Samples below
+          resolve. Real Lazada/Shopee URLs would work once the live affiliate
+          adapter is wired up — see{' '}
+          <code className="rounded bg-white/60 px-1 py-0.5">packages/adapters</code>.
+        </p>
+      </details>
 
       <form
         onSubmit={(e) => {
