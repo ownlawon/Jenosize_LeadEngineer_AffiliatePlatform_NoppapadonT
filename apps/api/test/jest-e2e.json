@@ -4,15 +4,10 @@
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "<rootDir>/../tsconfig.json" }]
   },
   "moduleNameMapper": {
     "^@jenosize/adapters$": "<rootDir>/../../../packages/adapters/src",
     "^@jenosize/shared$": "<rootDir>/../../../packages/shared/src"
-  },
-  "globals": {
-    "ts-jest": {
-      "tsconfig": "<rootDir>/../tsconfig.json"
-    }
   }
 }

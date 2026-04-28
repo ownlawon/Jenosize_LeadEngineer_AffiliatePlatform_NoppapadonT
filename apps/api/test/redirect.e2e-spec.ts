@@ -99,13 +99,17 @@ describe('Redirect /go/:code (e2e)', () => {
       .set('user-agent', 'jest-e2e-agent')
       .expect(302);
 
-    // Click insert is fire-and-forget via setImmediate — wait briefly
-    await new Promise((r) => setTimeout(r, 200));
-
-    const click = await prisma.click.findFirst({
-      where: { linkId, userAgent: 'jest-e2e-agent' },
-      orderBy: { timestamp: 'desc' },
-    });
+    // Click insert is fire-and-forget via setImmediate, so the row arrives
+    // shortly after the response. Poll for up to ~2s instead of relying on
+    // a fixed sleep — fixed sleeps are flaky on slower CI runners.
+    let click = null;
+    for (let i = 0; i < 20 && !click; i++) {
+      await new Promise((r) => setTimeout(r, 100));
+      click = await prisma.click.findFirst({
+        where: { linkId, userAgent: 'jest-e2e-agent' },
+        orderBy: { timestamp: 'desc' },
+      });
+    }
     expect(click).toBeTruthy();
     expect(click?.referrer).toBe('https://example.com/test');
   });
