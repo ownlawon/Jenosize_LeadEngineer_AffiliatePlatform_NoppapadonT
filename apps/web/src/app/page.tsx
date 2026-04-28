@@ -18,19 +18,29 @@ export default async function HomePage() {
     <>
       <Nav admin={isAuthenticated()} />
       <main className="mx-auto max-w-6xl px-6 py-12">
-        <section className="mb-12 rounded-2xl bg-gradient-to-br from-brand-600 to-indigo-700 p-10 text-white shadow-lg">
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Compare Lazada & Shopee prices in one place
+        <section className="mb-12 overflow-hidden rounded-2xl border border-slate-200 bg-white p-10 shadow-[0_1px_2px_rgb(0_0_0_/_0.04)]">
+          <span className="badge bg-slate-100 text-slate-600">Affiliate · Lazada · Shopee</span>
+          <h1 className="mt-4 max-w-2xl text-4xl font-semibold tracking-[-0.02em] text-slate-900 md:text-5xl">
+            Compare marketplace prices,{' '}
+            <span className="text-slate-400">track every click.</span>
           </h1>
-          <p className="mt-3 max-w-2xl text-brand-100">
-            Find the best deal across marketplaces, generated through Jenosize affiliate campaigns.
+          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-500">
+            One short link per product — automatic UTM, click attribution, and a
+            best-price badge across Lazada and Shopee.
           </p>
-          <Link
-            href="/admin/login"
-            className="mt-6 inline-block rounded-lg bg-white px-5 py-2 text-sm font-semibold text-brand-700 hover:bg-slate-100"
-          >
-            Open admin →
-          </Link>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Link href="/admin/login" className="btn-primary">
+              Open admin →
+            </Link>
+            <a
+              href="https://github.com/ownlawon/Jenosize_LeadEngineer_AffiliatePlatform"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline"
+            >
+              View source
+            </a>
+          </div>
         </section>
 
         <section>

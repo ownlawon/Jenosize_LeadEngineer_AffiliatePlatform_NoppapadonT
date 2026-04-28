@@ -18,10 +18,10 @@ function NavLink({ href, pathname, children }: NavLinkProps) {
       href={href}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'relative px-1 py-1 transition-colors',
+        'relative rounded-md px-2.5 py-1.5 text-[13px] transition-colors',
         active
-          ? 'font-semibold text-brand-600 after:absolute after:inset-x-0 after:-bottom-[1.05rem] after:h-0.5 after:rounded-full after:bg-brand-600'
-          : 'text-slate-600 hover:text-brand-600',
+          ? 'font-medium text-slate-900 after:absolute after:inset-x-2.5 after:-bottom-[13px] after:h-px after:bg-slate-900'
+          : 'text-slate-500 hover:text-slate-900',
       )}
     >
       {children}
@@ -33,26 +33,32 @@ export default function Nav({ admin = false }: { admin?: boolean }) {
   const pathname = usePathname() ?? '/';
 
   return (
-    <header className="border-b bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
-          <span className="text-brand-600">Jenosize</span> Affiliate
+    <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+        <Link href="/" className="flex items-center gap-2 text-[15px] font-semibold tracking-tight">
+          <span
+            className="grid h-6 w-6 place-items-center rounded-md bg-slate-900 text-[11px] font-bold text-white"
+            aria-hidden
+          >
+            J
+          </span>
+          <span>Jenosize <span className="text-slate-400">Affiliate</span></span>
         </Link>
-        <nav className="flex items-center gap-5 text-sm">
+        <nav className="flex items-center gap-1 text-sm">
           {admin ? (
             <>
               <NavLink href="/admin/dashboard" pathname={pathname}>Dashboard</NavLink>
               <NavLink href="/admin/products" pathname={pathname}>Products</NavLink>
               <NavLink href="/admin/campaigns" pathname={pathname}>Campaigns</NavLink>
               <NavLink href="/admin/links" pathname={pathname}>Links</NavLink>
-              <form action="/api/logout" method="post">
-                <button className="btn-outline">Logout</button>
+              <form action="/api/logout" method="post" className="ml-2">
+                <button className="btn-ghost text-[13px]">Logout</button>
               </form>
             </>
           ) : (
             <>
               <NavLink href="/" pathname={pathname}>Home</NavLink>
-              <Link href="/admin/login" className="btn-outline">Admin</Link>
+              <Link href="/admin/login" className="btn-outline ml-2 text-[13px]">Admin</Link>
             </>
           )}
         </nav>

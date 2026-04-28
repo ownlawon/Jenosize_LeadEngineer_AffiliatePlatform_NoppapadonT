@@ -96,8 +96,12 @@ export default async function DashboardPage() {
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="card">
-      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
+      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums text-slate-900">
+        {value}
+      </p>
     </div>
   );
 }
