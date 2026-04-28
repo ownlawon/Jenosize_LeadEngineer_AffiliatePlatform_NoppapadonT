@@ -32,10 +32,11 @@ export default async function DashboardPage() {
         <Stat label="Avg clicks / link" value={ctr} />
         <Stat
           label="Active campaigns"
-          value={
-            summary.activeCampaigns === summary.totalCampaigns
-              ? summary.activeCampaigns
-              : `${summary.activeCampaigns} / ${summary.totalCampaigns}`
+          value={summary.activeCampaigns}
+          hint={
+            summary.totalCampaigns > summary.activeCampaigns
+              ? `${summary.totalCampaigns - summary.activeCampaigns} inactive`
+              : undefined
           }
         />
       </div>
@@ -103,7 +104,15 @@ export default async function DashboardPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Stat({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string | number;
+  hint?: string;
+}) {
   return (
     <div className="card">
       <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500">
@@ -112,6 +121,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
       <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums text-slate-900">
         {value}
       </p>
+      {hint && <p className="mt-1 text-[11px] text-slate-400">{hint}</p>}
     </div>
   );
 }

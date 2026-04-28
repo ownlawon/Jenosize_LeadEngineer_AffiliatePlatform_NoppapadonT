@@ -82,19 +82,27 @@ function LoginForm() {
           {loading ? 'Signing in…' : 'Sign in'}
         </button>
 
-        <details className="rounded border border-dashed border-slate-300 p-3 text-xs text-slate-500">
-          <summary className="cursor-pointer font-medium text-slate-600">
-            Demo credentials (for reviewers)
-          </summary>
-          <div className="mt-2 space-y-1 font-mono">
+        <div className="rounded-md border border-dashed border-slate-300 bg-slate-50/60 p-3 text-xs">
+          <p className="mb-2 font-medium text-slate-700">Demo credentials</p>
+          <div className="space-y-1 font-mono text-slate-600">
             <div>
-              <span className="text-slate-400">email:</span> admin@jenosize.test
+              <span className="text-slate-400">email · </span>admin@jenosize.test
             </div>
             <div>
-              <span className="text-slate-400">password:</span> ChangeMe!2025
+              <span className="text-slate-400">password · </span>ChangeMe!2025
             </div>
           </div>
-        </details>
+          <button
+            type="button"
+            onClick={() => {
+              setEmail('admin@jenosize.test');
+              setPassword('ChangeMe!2025');
+            }}
+            className="mt-2 text-[11px] font-medium text-brand-600 hover:underline"
+          >
+            Fill demo credentials →
+          </button>
+        </div>
       </form>
     </div>
   );
