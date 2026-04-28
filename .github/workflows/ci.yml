@@ -67,11 +67,23 @@ jobs:
       - name: Apply migrations
         run: pnpm --filter @jenosize/api exec prisma migrate deploy
 
+      - name: Lint
+        run: pnpm -r --if-present lint
+
       - name: Typecheck
         run: pnpm -r typecheck
 
-      - name: Unit tests
-        run: pnpm -r test
+      - name: Unit tests (with coverage)
+        run: pnpm --filter @jenosize/api test:cov && pnpm --filter @jenosize/adapters test
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: apps/api/coverage
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: E2E tests (api)
         run: pnpm --filter @jenosize/api test:e2e

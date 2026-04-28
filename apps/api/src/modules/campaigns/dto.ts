@@ -12,7 +12,7 @@ export class CreateCampaignDto {
   @IsString()
   @MinLength(1)
   @MaxLength(80)
-  @Matches(/^[a-zA-Z0-9_\-]+$/, {
+  @Matches(/^[a-zA-Z0-9_-]+$/, {
     message: 'utmCampaign must be alphanumeric, underscore, or dash',
   })
   utmCampaign!: string;
