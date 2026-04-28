@@ -1,6 +1,7 @@
 import { apiFetch } from '@/lib/api';
 import type { DashboardSummary, TopProduct } from '@jenosize/shared';
 import DashboardChart from './DashboardChart';
+import ResetDemoButton from '@/components/ResetDemoButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,9 +15,12 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-sm text-slate-500">Aggregate stats across all campaigns</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-sm text-slate-500">Aggregate stats across all campaigns</p>
+        </div>
+        <ResetDemoButton />
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">

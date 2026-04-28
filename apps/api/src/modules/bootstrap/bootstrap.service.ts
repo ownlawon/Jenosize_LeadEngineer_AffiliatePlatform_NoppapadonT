@@ -38,12 +38,39 @@ export class BootstrapService implements OnModuleInit {
     }
 
     this.log.log('Empty catalogue detected — seeding demo data');
+    await this.seedAll();
+  }
+
+  /**
+   * Wipe every domain row (Click → Link → Campaign → Offer → Product) and
+   * re-seed from fixtures. Admin User rows are preserved so the operator
+   * isn't logged out. Exposed so the admin "reset demo" endpoint can call
+   * it on demand.
+   */
+  async wipeAndReseed(): Promise<{ products: number; links: number; clicks: number }> {
+    this.log.warn('Resetting demo data — wiping clicks/links/campaigns/offers/products');
+    // Order matters: respect FK chain — Click → Link → (Campaign, Offer) → Product
+    const wipedClicks = await this.prisma.click.deleteMany();
+    const wipedLinks = await this.prisma.link.deleteMany();
+    await this.prisma.campaign.deleteMany();
+    await this.prisma.offer.deleteMany();
+    await this.prisma.product.deleteMany();
+    const result = await this.seedAll();
+    this.log.warn(
+      `Reset complete — wiped ${wipedClicks.count} clicks + ${wipedLinks.count} links, ` +
+        `re-seeded ${result.products} products + ${result.links} links`,
+    );
+    return { ...result, clicks: wipedClicks.count };
+  }
+
+  private async seedAll(): Promise<{ products: number; links: number }> {
     const productIds = await this.seedProductsAndOffers();
     const campaignId = await this.seedSummerCampaign();
     const linkCount = await this.seedLinks(productIds, campaignId);
     this.log.log(
       `Demo seed complete — ${productIds.length} products, 1 campaign, ${linkCount} links`,
     );
+    return { products: productIds.length, links: linkCount };
   }
 
   private async seedProductsAndOffers(): Promise<string[]> {
