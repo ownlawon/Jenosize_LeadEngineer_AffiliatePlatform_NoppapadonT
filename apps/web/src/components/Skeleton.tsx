@@ -6,7 +6,10 @@ import { cn } from '@/lib/cn';
  * popping into existence.
  */
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('animate-pulse rounded bg-slate-200', className)} />;
+  // `.skeleton` applies an opacity pulse + horizontal shimmer sweep (defined
+  // in globals.css). bg-slate-200 is the fallback colour for users with
+  // prefers-reduced-motion (animations disabled).
+  return <div className={cn('skeleton rounded bg-slate-200', className)} />;
 }
 
 export function SkeletonLine({ className }: { className?: string }) {
