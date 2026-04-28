@@ -32,22 +32,32 @@ interface AddProductFormProps {
   existingOfferKeys?: string[];
 }
 
+type MarketplaceChoice = 'AUTO' | 'LAZADA' | 'SHOPEE';
+
 export default function AddProductForm({ existingOfferKeys = [] }: AddProductFormProps) {
   const existingSet = new Set(existingOfferKeys);
   const router = useRouter();
   const [url, setUrl] = useState('');
+  const [marketplace, setMarketplace] = useState<MarketplaceChoice>('AUTO');
   const [loading, setLoading] = useState(false);
 
-  async function submit(target?: string) {
+  async function submit(target?: string, forceMarketplace?: 'LAZADA' | 'SHOPEE') {
     const value = (target ?? url).trim();
     if (!value) return;
+    // Quick Samples carry their own marketplace; the form selector applies
+    // only when the user submits via the input. AUTO sends no marketplace
+    // hint so the backend's host-based detector takes over.
+    const explicit: 'LAZADA' | 'SHOPEE' | undefined =
+      forceMarketplace ?? (marketplace === 'AUTO' ? undefined : marketplace);
     setLoading(true);
     const tid = toast.loading('Adding product…');
     try {
+      const body: { url: string; marketplace?: 'LAZADA' | 'SHOPEE' } = { url: value };
+      if (explicit) body.marketplace = explicit;
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ url: value }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -88,17 +98,68 @@ export default function AddProductForm({ existingOfferKeys = [] }: AddProductFor
           e.preventDefault();
           submit();
         }}
-        className="flex flex-col gap-3 md:flex-row"
+        className="space-y-3"
       >
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="Paste a sample URL or click a Quick Sample below"
-          className="input flex-1"
-        />
-        <button type="submit" disabled={loading} className="btn-primary">
-          {loading ? 'Adding…' : 'Add product'}
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-500 sm:w-24">
+            Marketplace
+          </span>
+          <div
+            role="radiogroup"
+            aria-label="Marketplace"
+            className="inline-flex rounded-md border border-slate-200 bg-white p-0.5"
+          >
+            {(
+              [
+                { value: 'AUTO', label: 'Auto-detect' },
+                { value: 'LAZADA', label: 'Lazada' },
+                { value: 'SHOPEE', label: 'Shopee' },
+              ] as const
+            ).map((opt) => {
+              const active = marketplace === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setMarketplace(opt.value)}
+                  className={cn(
+                    'rounded px-3 py-1 text-xs font-medium transition-colors',
+                    active
+                      ? 'bg-slate-900 text-white'
+                      : 'text-slate-600 hover:bg-slate-50',
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 md:flex-row">
+          <input
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder={
+              marketplace === 'AUTO'
+                ? 'Paste a Lazada or Shopee URL — host detected automatically'
+                : `Paste a ${marketplace === 'LAZADA' ? 'Lazada' : 'Shopee'} URL or just a SKU like "matcha-001"`
+            }
+            className="input flex-1"
+          />
+          <button type="submit" disabled={loading} className="btn-primary">
+            {loading ? 'Adding…' : 'Add product'}
+          </button>
+        </div>
+
+        <p className="text-[11px] leading-relaxed text-slate-500">
+          <span className="font-medium text-slate-600">Examples:</span>{' '}
+          URL <code className="rounded bg-slate-100 px-1 py-0.5">https://www.lazada.co.th/products/matcha-001.html</code>{' '}
+          · SKU <code className="rounded bg-slate-100 px-1 py-0.5">matcha-001</code>{' '}
+          (with Lazada or Shopee selected)
+        </p>
       </form>
       <div>
         <div className="mb-2 flex items-baseline justify-between">
@@ -117,7 +178,7 @@ export default function AddProductForm({ existingOfferKeys = [] }: AddProductFor
               <button
                 key={s.url}
                 type="button"
-                onClick={() => submit(s.url)}
+                onClick={() => submit(s.url, s.marketplace)}
                 disabled={loading}
                 title={
                   added
