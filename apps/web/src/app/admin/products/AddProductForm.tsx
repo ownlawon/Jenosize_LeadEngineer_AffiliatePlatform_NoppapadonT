@@ -47,6 +47,14 @@ export default function AddProductForm() {
 
   return (
     <div className="card space-y-4">
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+        <strong className="font-semibold">Demo mode:</strong> the catalogue is
+        backed by a mock adapter (per the assignment&apos;s allowance), so only
+        the three sample SKUs below resolve. Real Lazada/Shopee URLs would
+        work once the live affiliate adapter is wired up — see{' '}
+        <code className="rounded bg-white/60 px-1 py-0.5">packages/adapters</code>.
+      </div>
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -57,7 +65,7 @@ export default function AddProductForm() {
         <input
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://www.lazada.co.th/products/... or shopee.co.th/product/..."
+          placeholder="Paste a sample URL or click a Quick Sample below"
           className="input flex-1"
         />
         <button type="submit" disabled={loading} className="btn-primary">

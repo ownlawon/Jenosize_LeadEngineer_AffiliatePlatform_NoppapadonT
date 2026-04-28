@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Marketplace, Offer, Prisma } from '@prisma/client';
 
-import { detectMarketplace, getAdapter } from '@jenosize/adapters';
+import { AdapterError, detectMarketplace, getAdapter } from '@jenosize/adapters';
 import { OfferDto, ProductDto } from '@jenosize/shared';
 
 import { PrismaService } from '../../prisma/prisma.service';
@@ -24,7 +24,22 @@ export class ProductsService {
       throw new BadRequestException(`URL is not a valid ${marketplace} product URL`);
     }
 
-    const fetched = await adapter.fetchProduct(parsed.externalId);
+    let fetched;
+    try {
+      fetched = await adapter.fetchProduct(parsed.externalId);
+    } catch (e) {
+      if (e instanceof AdapterError) {
+        // The adapter is currently mock-backed (per the assignment) and only
+        // recognises a small set of fixture SKUs. Surface that as a clear 400
+        // instead of a 500 so the admin form can show a useful message.
+        throw new BadRequestException(
+          `This product isn't in our mock catalog (id="${parsed.externalId}"). ` +
+            'Use one of the Quick Samples below — real Lazada/Shopee URLs would ' +
+            'work once the live affiliate adapter is plugged in.',
+        );
+      }
+      throw e;
+    }
 
     // Upsert by (title, imageUrl) — we treat same-titled items as the same Product
     // and attach Offers per marketplace. In a real system, productId would come from
