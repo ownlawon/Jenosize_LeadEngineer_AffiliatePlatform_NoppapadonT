@@ -108,7 +108,13 @@ export default function AddProductForm() {
         </button>
       </form>
       <div>
-        <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Quick samples</p>
+        <div className="mb-2 flex items-baseline justify-between">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Quick samples</p>
+          <span className="text-[11px] text-slate-400">
+            Hover a button to see the URL it submits — paste any of those into the
+            field above to test the form by hand.
+          </span>
+        </div>
         <div className="flex flex-wrap gap-2">
           {SAMPLES.map((s) => (
             <button
@@ -116,6 +122,7 @@ export default function AddProductForm() {
               type="button"
               onClick={() => submit(s.url)}
               disabled={loading}
+              title={s.url}
               className="btn-outline text-xs"
             >
               {s.label}
