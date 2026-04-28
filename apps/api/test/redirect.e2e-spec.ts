@@ -113,4 +113,41 @@ describe('Redirect /go/:code (e2e)', () => {
   it('returns 404 for unknown short code', async () => {
     await request(app.getHttpServer()).get('/go/zzzzzzzz').expect(404);
   });
+
+  it('rejects redirects to non-marketplace hosts (open-redirect guard)', async () => {
+    // Smuggle a Link with an evil targetUrl directly into the database to
+    // verify the runtime host whitelist blocks even data the adapter would
+    // never produce.
+    const evilProduct = await prisma.product.create({
+      data: { title: 'Evil', imageUrl: 'https://example.com/x.jpg' },
+    });
+    const evilCampaign = await prisma.campaign.create({
+      data: {
+        name: 'Evil Campaign',
+        utmCampaign: 'evil',
+        utmSource: 'jenosize',
+        utmMedium: 'affiliate',
+        startAt: new Date('2020-01-01'),
+        endAt: new Date('2099-12-31'),
+      },
+    });
+    const evilLink = await prisma.link.create({
+      data: {
+        productId: evilProduct.id,
+        campaignId: evilCampaign.id,
+        marketplace: 'LAZADA',
+        shortCode: 'evil123',
+        targetUrl: 'https://attacker.example.com/phish',
+      },
+    });
+
+    const res = await request(app.getHttpServer()).get(`/go/${evilLink.shortCode}`);
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/Refusing to redirect/i);
+
+    // Cleanup
+    await prisma.link.delete({ where: { id: evilLink.id } });
+    await prisma.campaign.delete({ where: { id: evilCampaign.id } });
+    await prisma.product.delete({ where: { id: evilProduct.id } });
+  });
 });
