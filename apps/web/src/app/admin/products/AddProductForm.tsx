@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const SAMPLES = [
   { url: 'https://www.lazada.co.th/products/matcha-001.html', label: 'Lazada · Matcha' },
@@ -42,14 +43,13 @@ const SAMPLES = [
 export default function AddProductForm() {
   const router = useRouter();
   const [url, setUrl] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function submit(target?: string) {
     const value = (target ?? url).trim();
     if (!value) return;
-    setError(null);
     setLoading(true);
+    const tid = toast.loading('Adding product…');
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
@@ -60,10 +60,12 @@ export default function AddProductForm() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.message ?? data?.error ?? 'Failed to add product');
       }
+      const product = (await res.json().catch(() => null)) as { title?: string } | null;
+      toast.success(product?.title ? `Added "${product.title}"` : 'Product added', { id: tid });
       setUrl('');
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to add product');
+      toast.error(e instanceof Error ? e.message : 'Failed to add product', { id: tid });
     } finally {
       setLoading(false);
     }
@@ -97,7 +99,6 @@ export default function AddProductForm() {
           {loading ? 'Adding…' : 'Add product'}
         </button>
       </form>
-      {error && <p className="rounded bg-red-50 p-2 text-sm text-red-700">{error}</p>}
       <div>
         <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Quick samples</p>
         <div className="flex flex-wrap gap-2">

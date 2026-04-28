@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 /**
  * Demo-only control: wipes domain data and re-seeds the fixture catalogue.
@@ -12,7 +13,6 @@ import { useRouter } from 'next/navigation';
 export default function ResetDemoButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [feedback, setFeedback] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null);
 
   async function reset() {
     if (loading) return;
@@ -24,7 +24,7 @@ export default function ResetDemoButton() {
     );
     if (!confirmed) return;
     setLoading(true);
-    setFeedback(null);
+    const tid = toast.loading('Resetting demo data…');
     try {
       const res = await fetch('/api/admin/reset-demo', { method: 'POST' });
       if (!res.ok) {
@@ -32,40 +32,26 @@ export default function ResetDemoButton() {
         throw new Error(data?.message ?? data?.error ?? `HTTP ${res.status}`);
       }
       const data = (await res.json()) as { products: number; links: number; clicks: number };
-      setFeedback({
-        kind: 'ok',
-        msg: `Reset complete — ${data.products} products / ${data.links} links / ${data.clicks} clicks wiped.`,
-      });
+      toast.success(
+        `Reset complete — ${data.products} products / ${data.links} links / ${data.clicks} clicks wiped`,
+        { id: tid },
+      );
       router.refresh();
     } catch (e) {
-      setFeedback({
-        kind: 'err',
-        msg: e instanceof Error ? e.message : 'Reset failed',
-      });
+      toast.error(e instanceof Error ? e.message : 'Reset failed', { id: tid });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <button
-        type="button"
-        onClick={reset}
-        disabled={loading}
-        className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-60"
-      >
-        {loading ? 'Resetting…' : 'Reset demo data'}
-      </button>
-      {feedback && (
-        <p
-          className={`max-w-xs text-right text-[11px] ${
-            feedback.kind === 'ok' ? 'text-emerald-700' : 'text-red-700'
-          }`}
-        >
-          {feedback.msg}
-        </p>
-      )}
-    </div>
+    <button
+      type="button"
+      onClick={reset}
+      disabled={loading}
+      className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-60"
+    >
+      {loading ? 'Resetting…' : 'Reset demo data'}
+    </button>
   );
 }

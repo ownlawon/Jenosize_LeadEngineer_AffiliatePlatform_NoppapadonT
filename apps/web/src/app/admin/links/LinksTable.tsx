@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import type { LinkDto } from '@jenosize/shared';
 
 /** Best-effort host extraction; safe for malformed strings. */
@@ -20,8 +21,9 @@ export default function LinksTable({ links }: { links: LinkDto[] }) {
       await navigator.clipboard.writeText(url);
       setCopied(id);
       setTimeout(() => setCopied(null), 1500);
+      toast.success('Short URL copied to clipboard');
     } catch {
-      /* clipboard not available */
+      toast.error('Clipboard not available — copy manually from the link');
     }
   }
 

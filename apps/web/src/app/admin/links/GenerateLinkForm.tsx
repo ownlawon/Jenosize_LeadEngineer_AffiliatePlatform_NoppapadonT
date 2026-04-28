@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import type { CampaignDto, ProductDto } from '@jenosize/shared';
 
 interface Props {
@@ -14,7 +15,6 @@ export default function GenerateLinkForm({ products, campaigns }: Props) {
   const [productId, setProductId] = useState(products[0]?.id ?? '');
   const [campaignId, setCampaignId] = useState(campaigns[0]?.id ?? '');
   const [marketplace, setMarketplace] = useState<'LAZADA' | 'SHOPEE'>('LAZADA');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const availableMarkets = useMemo(() => {
@@ -25,8 +25,8 @@ export default function GenerateLinkForm({ products, campaigns }: Props) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setLoading(true);
+    const tid = toast.loading('Generating link…');
     try {
       const res = await fetch('/api/links', {
         method: 'POST',
@@ -37,9 +37,14 @@ export default function GenerateLinkForm({ products, campaigns }: Props) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.message ?? 'Failed to generate link');
       }
+      const link = (await res.json().catch(() => null)) as { shortCode?: string } | null;
+      toast.success(
+        link?.shortCode ? `Generated /go/${link.shortCode}` : 'Link generated',
+        { id: tid },
+      );
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to generate link');
+      toast.error(e instanceof Error ? e.message : 'Failed to generate link', { id: tid });
     } finally {
       setLoading(false);
     }
@@ -96,9 +101,6 @@ export default function GenerateLinkForm({ products, campaigns }: Props) {
         </select>
       </div>
 
-      {error && (
-        <p className="md:col-span-4 rounded bg-red-50 p-2 text-sm text-red-700">{error}</p>
-      )}
       <div className="md:col-span-4 flex justify-end">
         <button type="submit" disabled={loading} className="btn-primary">
           {loading ? 'Generating…' : 'Generate link'}

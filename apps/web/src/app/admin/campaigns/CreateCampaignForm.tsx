@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function CreateCampaignForm() {
   const router = useRouter();
@@ -12,20 +13,19 @@ export default function CreateCampaignForm() {
   const [utmCampaign, setUtm] = useState('summer_deal_2025');
   const [startAt, setStart] = useState(today);
   const [endAt, setEnd] = useState(inThreeMonths);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
 
     // Client-side guard so the user gets feedback before a round-trip.
     if (new Date(endAt) <= new Date(startAt)) {
-      setError('End date must be after start date');
+      toast.error('End date must be after start date');
       return;
     }
 
     setLoading(true);
+    const tid = toast.loading('Creating campaign…');
     try {
       const res = await fetch('/api/campaigns', {
         method: 'POST',
@@ -42,9 +42,10 @@ export default function CreateCampaignForm() {
         const raw = data?.message ?? data?.error ?? 'Failed to create';
         throw new Error(Array.isArray(raw) ? raw.join(', ') : String(raw));
       }
+      toast.success(`Campaign "${name}" created`, { id: tid });
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create');
+      toast.error(e instanceof Error ? e.message : 'Failed to create', { id: tid });
     } finally {
       setLoading(false);
     }
@@ -88,9 +89,6 @@ export default function CreateCampaignForm() {
           required
         />
       </div>
-      {error && (
-        <p className="md:col-span-2 rounded bg-red-50 p-2 text-sm text-red-700">{error}</p>
-      )}
       <div className="md:col-span-2 flex justify-end">
         <button type="submit" disabled={loading} className="btn-primary">
           {loading ? 'Creating…' : 'Create campaign'}
