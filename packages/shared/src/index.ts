@@ -1,6 +1,6 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-export const MarketplaceSchema = z.enum(['LAZADA', 'SHOPEE']);
+export const MarketplaceSchema = z.enum(["LAZADA", "SHOPEE"]);
 export type Marketplace = z.infer<typeof MarketplaceSchema>;
 
 // --- Pagination ---
@@ -54,15 +54,18 @@ export const CreateCampaignSchema = z
       .string()
       .min(1)
       .max(80)
-      .regex(/^[a-zA-Z0-9_\-]+$/, 'UTM campaign must be alphanumeric, underscore, or dash'),
+      .regex(
+        /^[a-zA-Z0-9_\-]+$/,
+        "UTM campaign must be alphanumeric, underscore, or dash",
+      ),
     utmSource: z.string().max(80).optional(),
     utmMedium: z.string().max(80).optional(),
     startAt: z.string().datetime(),
     endAt: z.string().datetime(),
   })
   .refine((d) => new Date(d.endAt) > new Date(d.startAt), {
-    message: 'endAt must be after startAt',
-    path: ['endAt'],
+    message: "endAt must be after startAt",
+    path: ["endAt"],
   });
 export type CreateCampaignInput = z.infer<typeof CreateCampaignSchema>;
 
@@ -119,4 +122,20 @@ export interface TopProduct {
   title: string;
   imageUrl: string;
   clicks: number;
+}
+
+/** Per-link drill-down — backs the `/admin/links/:id` page. */
+export interface LinkAnalytics {
+  link: LinkDto;
+  product: { id: string; title: string; imageUrl: string };
+  campaign: { id: string; name: string; utmCampaign: string };
+  clicks: number;
+  impressions: number;
+  /** clicks / impressions; null when impressions = 0. */
+  ctr: number | null;
+  last7Days: Array<{
+    date: string;
+    clicks: number;
+    impressions: number;
+  }>;
 }

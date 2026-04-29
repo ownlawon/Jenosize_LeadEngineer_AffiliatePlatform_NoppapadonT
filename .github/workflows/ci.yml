@@ -90,3 +90,97 @@ jobs:
 
       - name: Build
         run: pnpm -r build
+
+  e2e-web:
+    runs-on: ubuntu-latest
+    needs: lint-test
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: jenosize
+          POSTGRES_PASSWORD: jenosize
+          POSTGRES_DB: jenosize
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jenosize"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://jenosize:jenosize@localhost:5432/jenosize?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-test-secret-must-be-long-enough
+      ADMIN_EMAIL: admin@jenosize.test
+      ADMIN_PASSWORD: ChangeMe!2025
+      SHORT_LINK_BASE_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Build workspace packages
+        run: |
+          pnpm --filter @jenosize/shared build
+          pnpm --filter @jenosize/adapters build
+
+      - name: Generate Prisma client
+        run: pnpm --filter @jenosize/api db:generate
+
+      - name: Apply migrations
+        run: pnpm --filter @jenosize/api exec prisma migrate deploy
+
+      - name: Build api + web
+        run: |
+          pnpm --filter @jenosize/api build
+          pnpm --filter @jenosize/web build
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @jenosize/web exec playwright install --with-deps chromium
+
+      - name: Start api in background
+        run: |
+          pnpm --filter @jenosize/api start &
+          # Wait until /health responds before letting the e2e job continue.
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3001/health > /dev/null; then
+              echo "api ready"; exit 0
+            fi
+            sleep 1
+          done
+          echo "api failed to start"; exit 1
+
+      - name: Run Playwright happy-path e2e
+        run: pnpm --filter @jenosize/web e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7

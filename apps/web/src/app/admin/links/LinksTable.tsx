@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { toast } from 'sonner';
-import type { CampaignDto, LinkDto, ProductDto } from '@jenosize/shared';
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import { toast } from "sonner";
+import type { CampaignDto, LinkDto, ProductDto } from "@jenosize/shared";
 
 /** Best-effort host extraction; safe for malformed strings. */
 function hostOf(url: string): string {
   try {
     return new URL(url).host;
   } catch {
-    return '';
+    return "";
   }
 }
 
@@ -37,9 +38,9 @@ export default function LinksTable({ links, products, campaigns }: Props) {
       await navigator.clipboard.writeText(url);
       setCopied(id);
       setTimeout(() => setCopied(null), 1500);
-      toast.success('Short URL copied to clipboard');
+      toast.success("Short URL copied to clipboard");
     } catch {
-      toast.error('Clipboard not available — copy manually from the link');
+      toast.error("Clipboard not available — copy manually from the link");
     }
   }
 
@@ -48,11 +49,21 @@ export default function LinksTable({ links, products, campaigns }: Props) {
       <table className="min-w-full divide-y divide-slate-200 text-sm">
         <thead className="bg-slate-50">
           <tr>
-            <th className="px-4 py-3 text-left font-medium text-slate-600">Product</th>
-            <th className="px-4 py-3 text-left font-medium text-slate-600">Campaign</th>
-            <th className="px-4 py-3 text-left font-medium text-slate-600">Short link</th>
-            <th className="px-4 py-3 text-left font-medium text-slate-600">Marketplace</th>
-            <th className="px-4 py-3 text-right font-medium text-slate-600">Clicks</th>
+            <th className="px-4 py-3 text-left font-medium text-slate-600">
+              Product
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-slate-600">
+              Campaign
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-slate-600">
+              Short link
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-slate-600">
+              Marketplace
+            </th>
+            <th className="px-4 py-3 text-right font-medium text-slate-600">
+              Clicks
+            </th>
             <th className="px-4 py-3"></th>
           </tr>
         </thead>
@@ -95,7 +106,9 @@ export default function LinksTable({ links, products, campaigns }: Props) {
                   <td className="px-4 py-3">
                     {campaign ? (
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-sm text-slate-700">{campaign.name}</span>
+                        <span className="text-sm text-slate-700">
+                          {campaign.name}
+                        </span>
                         <code className="text-[11px] text-slate-400">
                           {campaign.utmCampaign}
                         </code>
@@ -108,33 +121,38 @@ export default function LinksTable({ links, products, campaigns }: Props) {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-0.5">
+                      <Link
+                        href={`/admin/links/${l.id}`}
+                        title={`Drill into ${l.shortCode}`}
+                        className="font-mono text-sm font-semibold text-brand-600 hover:underline"
+                      >
+                        /go/{l.shortCode}
+                      </Link>
                       <a
                         href={l.shortUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title={l.shortUrl}
-                        className="font-mono text-sm font-semibold text-brand-600 hover:underline"
-                      >
-                        /go/{l.shortCode}
-                      </a>
-                      <span
-                        className="truncate text-xs text-slate-400"
                         title={l.targetUrl}
+                        className="truncate text-xs text-slate-400 hover:text-slate-600"
                       >
                         → {targetHost || l.targetUrl}
-                      </span>
+                      </a>
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="badge bg-slate-100 text-slate-700">{l.marketplace}</span>
+                    <span className="badge bg-slate-100 text-slate-700">
+                      {l.marketplace}
+                    </span>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums">{l.clickCount ?? 0}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">
+                    {l.clickCount ?? 0}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => copy(l.shortUrl, l.id)}
                       className="btn-outline text-xs"
                     >
-                      {copied === l.id ? 'Copied' : 'Copy'}
+                      {copied === l.id ? "Copied" : "Copy"}
                     </button>
                   </td>
                 </tr>

@@ -12,6 +12,12 @@ coverage/
 .cache/
 *.tsbuildinfo
 
+# Playwright
+playwright-report/
+test-results/
+apps/web/playwright-report/
+apps/web/test-results/
+
 # Prisma generated client
 apps/api/src/generated/
 

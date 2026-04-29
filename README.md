@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ownlawon/Jenosize_LeadEngineer_AffiliatePlatform_NoppapadonT/actions/workflows/ci.yml/badge.svg)](https://github.com/ownlawon/Jenosize_LeadEngineer_AffiliatePlatform_NoppapadonT/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/ownlawon/Jenosize_LeadEngineer_AffiliatePlatform_NoppapadonT/actions/workflows/codeql.yml/badge.svg)](https://github.com/ownlawon/Jenosize_LeadEngineer_AffiliatePlatform_NoppapadonT/actions/workflows/codeql.yml)
-![Tests: 31](https://img.shields.io/badge/tests-31%20cases-2ea44f?logo=jest&logoColor=white)
+![Tests: 34](https://img.shields.io/badge/tests-34%20cases-2ea44f?logo=jest&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-slategray.svg)](LICENSE)
 ![Node ≥20](https://img.shields.io/badge/node-%E2%89%A520-339933?logo=node.js&logoColor=white)
 ![pnpm 9](https://img.shields.io/badge/pnpm-9-F69220?logo=pnpm&logoColor=white)
@@ -105,7 +105,7 @@ sequenceDiagram
 | Auth       | **JWT (bcryptjs cost 12) + httpOnly cookie**      | Standard, no third-party needed; first-boot seeded admin                                                 |
 | Validation | **class-validator (api) + Zod (shared)**          | Runtime safety on every boundary                                                                         |
 | Charts     | **Recharts**                                      | Zero-config bar chart for the dashboard                                                                  |
-| Testing    | **Jest + Supertest**                              | 20 unit cases (adapters + products service) + 11 e2e (redirect + auth/throttle)                          |
+| Testing    | **Jest + Supertest**                              | 20 unit (adapters + products service) + 14 e2e (redirect + auth/throttle + impressions)                  |
 | CI         | **GitHub Actions** with postgres + redis services | Lint, typecheck, unit, e2e, build all run on every PR                                                    |
 | Hosting    | **Railway** (per user's choice)                   | Web + api + worker in one project; managed Postgres + Redis                                              |
 
