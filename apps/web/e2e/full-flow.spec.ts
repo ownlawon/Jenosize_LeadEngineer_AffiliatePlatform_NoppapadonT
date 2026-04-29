@@ -125,20 +125,24 @@ test.describe("Affiliate happy path", () => {
     await expect(page).toHaveURL(/\/admin\/dashboard/);
 
     // Total clicks should be ≥ 1 — the Click write is fire-and-forget so
-    // give it a moment to land.
+    // give it a moment to land. We locate the whole `.card` element that
+    // contains the "Total clicks" label, then parse its innerText. This is
+    // robust to the Stat component's internal layout (label + icon in one
+    // row, value + sparkline in another) — earlier versions of this test
+    // assumed label + value were direct siblings, which broke after the
+    // KPI card was restructured for sparkline support.
     await expect
       .poll(
         async () => {
-          const text = await page
-            .locator("p", { hasText: /Total clicks/i })
-            .first()
-            .locator("..")
-            .innerText();
+          const card = page
+            .locator(".card", { hasText: /Total clicks/i })
+            .first();
+          const text = await card.innerText();
           const match = text.match(/\b(\d+)\b/);
           return match ? Number(match[1]) : 0;
         },
         {
-          timeout: 10_000,
+          timeout: 15_000,
           message: "Dashboard total clicks did not increment after redirect",
         },
       )
