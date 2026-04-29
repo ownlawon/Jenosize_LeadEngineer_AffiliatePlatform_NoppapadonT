@@ -35,24 +35,30 @@ test.describe("Affiliate happy path", () => {
     await page.getByRole("link", { name: /^Products$/ }).click();
     await expect(page).toHaveURL(/\/admin\/products/);
 
-    // Capture the table row count before the click so we can assert growth.
-    const productRowsBefore = await page.locator("table tbody tr").count();
+    // Wait for the table to render the 3 starter products from the reset.
+    // Reading .count() right after navigation hits before hydration finishes,
+    // so we use toHaveCount() which retries until the assertion holds.
+    const rows = page.locator("table tbody tr");
+    await expect(rows).toHaveCount(3, { timeout: 15_000 });
 
     // Coffee Beans is one of the 3 SKUs that the reset deliberately leaves
-    // un-seeded so this click produces visible feedback.
+    // un-seeded so this click produces visible feedback (table grows to 4).
     await page.getByRole("button", { name: /Lazada · Coffee Beans/i }).click();
-    await expect(page.getByText(/added/i).first()).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(rows).toHaveCount(4, { timeout: 15_000 });
 
-    const productRowsAfter = await page.locator("table tbody tr").count();
-    expect(productRowsAfter).toBe(productRowsBefore + 1);
-
-    // Add the Shopee offer to the same product so we can generate links for both.
+    // Add the Shopee offer to the same product. Offer.unique([productId,
+    // marketplace]) means it merges into the existing Coffee Beans row —
+    // count stays at 4. We wait for the POST to complete instead of asserting
+    // visual changes, since the row count is the same and per-row markup
+    // varies between iterations.
+    const shopeeResponse = page.waitForResponse(
+      (r) =>
+        r.url().includes("/api/products") && r.request().method() === "POST",
+    );
     await page.getByRole("button", { name: /Shopee · Coffee Beans/i }).click();
-    await expect(page.getByText(/added/i).last()).toBeVisible({
-      timeout: 10_000,
-    });
+    const shopeeRes = await shopeeResponse;
+    expect(shopeeRes.status()).toBeLessThan(400);
+    await expect(rows).toHaveCount(4, { timeout: 15_000 });
 
     // ── Step 2: Create a campaign ──────────────────────────────────────────
     await page.getByRole("link", { name: /^Campaigns$/ }).click();
@@ -63,8 +69,17 @@ test.describe("Affiliate happy path", () => {
     const utmSlug = `e2e_${stamp}`;
     await page.getByLabel(/Name/i).fill(campaignName);
     await page.getByLabel(/UTM campaign/i).fill(utmSlug);
+    const campaignResponse = page.waitForResponse(
+      (r) =>
+        r.url().includes("/api/campaigns") && r.request().method() === "POST",
+    );
     await page.getByRole("button", { name: /Create campaign/i }).click();
-    await expect(page.getByText(campaignName)).toBeVisible({ timeout: 10_000 });
+    const campaignRes = await campaignResponse;
+    expect(campaignRes.status()).toBeLessThan(400);
+    // Wait for the campaign to appear in the table (router.refresh roundtrip).
+    await expect(page.getByRole("cell", { name: campaignName })).toBeVisible({
+      timeout: 15_000,
+    });
 
     // ── Step 3: Generate a link ────────────────────────────────────────────
     await page.getByRole("link", { name: /^Links$/ }).click();
@@ -74,22 +89,14 @@ test.describe("Affiliate happy path", () => {
     await page.getByLabel(/Product/i).selectOption({ label: /Coffee/i });
     await page.getByLabel(/Campaign/i).selectOption({ label: campaignName });
     await page.getByLabel(/Marketplace/i).selectOption("LAZADA");
+    const linkResponse = page.waitForResponse(
+      (r) => r.url().includes("/api/links") && r.request().method() === "POST",
+    );
     await page.getByRole("button", { name: /Generate link/i }).click();
-    await expect(
-      page.getByText(/Link.*generated|Short URL copied/i).first(),
-    ).toBeVisible({
-      timeout: 10_000,
-    });
-
-    // Pull the just-generated short code out of the table — first row.
-    const shortCodeCell = page
-      .locator("table tbody tr")
-      .first()
-      .getByRole("link", {
-        name: /^\/go\//,
-      });
-    const shortCodeText = await shortCodeCell.innerText();
-    const shortCode = shortCodeText.replace(/^\/go\//, "").trim();
+    const linkRes = await linkResponse;
+    expect(linkRes.status()).toBeLessThan(400);
+    const linkBody = await linkRes.json();
+    const shortCode = String(linkBody.shortCode);
     expect(shortCode).toMatch(/^[A-Za-z0-9]{6}$/);
 
     // ── Step 4: Click the redirect (without following the 302) ─────────────
