@@ -1,16 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function CreateCampaignForm() {
   const router = useRouter();
   const today = new Date().toISOString().slice(0, 10);
-  const inThreeMonths = new Date(Date.now() + 90 * 86400_000).toISOString().slice(0, 10);
+  const inThreeMonths = new Date(Date.now() + 90 * 86400_000)
+    .toISOString()
+    .slice(0, 10);
 
-  const [name, setName] = useState('Summer Deal 2025');
-  const [utmCampaign, setUtm] = useState('summer_deal_2025');
+  const [name, setName] = useState("Summer Deal 2025");
+  const [utmCampaign, setUtm] = useState("summer_deal_2025");
   const [startAt, setStart] = useState(today);
   const [endAt, setEnd] = useState(inThreeMonths);
   const [loading, setLoading] = useState(false);
@@ -20,16 +22,16 @@ export default function CreateCampaignForm() {
 
     // Client-side guard so the user gets feedback before a round-trip.
     if (new Date(endAt) <= new Date(startAt)) {
-      toast.error('End date must be after start date');
+      toast.error("End date must be after start date");
       return;
     }
 
     setLoading(true);
-    const tid = toast.loading('Creating campaign…');
+    const tid = toast.loading("Creating campaign…");
     try {
-      const res = await fetch('/api/campaigns', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
+      const res = await fetch("/api/campaigns", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({
           name,
           utmCampaign,
@@ -39,13 +41,15 @@ export default function CreateCampaignForm() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        const raw = data?.message ?? data?.error ?? 'Failed to create';
-        throw new Error(Array.isArray(raw) ? raw.join(', ') : String(raw));
+        const raw = data?.message ?? data?.error ?? "Failed to create";
+        throw new Error(Array.isArray(raw) ? raw.join(", ") : String(raw));
       }
       toast.success(`Campaign "${name}" created`, { id: tid });
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to create', { id: tid });
+      toast.error(e instanceof Error ? e.message : "Failed to create", {
+        id: tid,
+      });
     } finally {
       setLoading(false);
     }
@@ -54,12 +58,23 @@ export default function CreateCampaignForm() {
   return (
     <form onSubmit={submit} className="card grid gap-4 md:grid-cols-2">
       <div>
-        <label className="label">Name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} className="input" required />
+        <label htmlFor="campaign-name" className="label">
+          Name
+        </label>
+        <input
+          id="campaign-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="input"
+          required
+        />
       </div>
       <div>
-        <label className="label">UTM campaign</label>
+        <label htmlFor="campaign-utm" className="label">
+          UTM campaign
+        </label>
         <input
+          id="campaign-utm"
           value={utmCampaign}
           onChange={(e) => setUtm(e.target.value)}
           pattern="[a-zA-Z0-9_\-]+"
@@ -69,8 +84,11 @@ export default function CreateCampaignForm() {
         />
       </div>
       <div>
-        <label className="label">Start date</label>
+        <label htmlFor="campaign-start" className="label">
+          Start date
+        </label>
         <input
+          id="campaign-start"
           type="date"
           value={startAt}
           onChange={(e) => setStart(e.target.value)}
@@ -79,8 +97,11 @@ export default function CreateCampaignForm() {
         />
       </div>
       <div>
-        <label className="label">End date</label>
+        <label htmlFor="campaign-end" className="label">
+          End date
+        </label>
         <input
+          id="campaign-end"
           type="date"
           value={endAt}
           min={startAt}
@@ -91,7 +112,7 @@ export default function CreateCampaignForm() {
       </div>
       <div className="md:col-span-2 flex justify-end">
         <button type="submit" disabled={loading} className="btn-primary">
-          {loading ? 'Creating…' : 'Create campaign'}
+          {loading ? "Creating…" : "Create campaign"}
         </button>
       </div>
     </form>
