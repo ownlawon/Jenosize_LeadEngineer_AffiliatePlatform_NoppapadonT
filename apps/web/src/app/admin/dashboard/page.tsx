@@ -1,20 +1,23 @@
-import { apiFetch } from '@/lib/api';
-import type { DashboardSummary, TopProduct } from '@jenosize/shared';
-import DashboardChart from './DashboardChart';
-import ResetDemoButton from '@/components/ResetDemoButton';
-import OnboardingCard from '@/components/OnboardingCard';
+import { apiFetch } from "@/lib/api";
+import type { DashboardSummary, TopProduct } from "@jenosize/shared";
+import DashboardChart from "./DashboardChart";
+import ExportClicksButton from "./ExportClicksButton";
+import ResetDemoButton from "@/components/ResetDemoButton";
+import OnboardingCard from "@/components/OnboardingCard";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const [summary, top] = await Promise.all([
-    apiFetch<DashboardSummary>('/api/dashboard', { authed: true }),
-    apiFetch<TopProduct[]>('/api/dashboard/top-products?limit=5', { authed: true }),
+    apiFetch<DashboardSummary>("/api/dashboard", { authed: true }),
+    apiFetch<TopProduct[]>("/api/dashboard/top-products?limit=5", {
+      authed: true,
+    }),
   ]);
 
   const ctrLabel =
     summary.ctr === null
-      ? '—'
+      ? "—"
       : `${(summary.ctr * 100).toFixed(summary.ctr < 0.01 ? 2 : 1)}%`;
   const ctrHint =
     summary.ctr === null
@@ -26,9 +29,14 @@ export default async function DashboardPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm text-slate-500">Aggregate stats across all campaigns</p>
+          <p className="text-sm text-slate-500">
+            Aggregate stats across all campaigns
+          </p>
         </div>
-        <ResetDemoButton />
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportClicksButton />
+          <ResetDemoButton />
+        </div>
       </div>
 
       {summary.totalProducts === 0 && <OnboardingCard />}
@@ -61,7 +69,10 @@ export default async function DashboardPage() {
           ) : (
             <ul className="space-y-2 text-sm">
               {summary.byMarketplace.map((m) => (
-                <li key={m.marketplace} className="flex items-center justify-between">
+                <li
+                  key={m.marketplace}
+                  className="flex items-center justify-between"
+                >
                   <span className="font-medium">{m.marketplace}</span>
                   <span className="tabular-nums">{m.clicks}</span>
                 </li>
@@ -75,11 +86,16 @@ export default async function DashboardPage() {
         <div className="card">
           <h2 className="mb-4 font-semibold">By campaign</h2>
           {summary.byCampaign.length === 0 ? (
-            <p className="text-sm text-slate-500">No campaigns with clicks yet.</p>
+            <p className="text-sm text-slate-500">
+              No campaigns with clicks yet.
+            </p>
           ) : (
             <ul className="space-y-2 text-sm">
               {summary.byCampaign.map((c) => (
-                <li key={c.campaignId} className="flex items-center justify-between">
+                <li
+                  key={c.campaignId}
+                  className="flex items-center justify-between"
+                >
                   <span className="truncate">{c.name}</span>
                   <span className="tabular-nums">{c.clicks}</span>
                 </li>
@@ -98,7 +114,11 @@ export default async function DashboardPage() {
                 <li key={p.productId} className="flex items-center gap-3">
                   <span className="w-5 text-slate-400">{idx + 1}.</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.imageUrl} alt={p.title} className="h-10 w-10 rounded object-cover" />
+                  <img
+                    src={p.imageUrl}
+                    alt={p.title}
+                    className="h-10 w-10 rounded object-cover"
+                  />
                   <span className="flex-1 truncate">{p.title}</span>
                   <span className="font-semibold tabular-nums">{p.clicks}</span>
                 </li>

@@ -12,11 +12,19 @@
     "db:migrate": "pnpm --filter @jenosize/api run db:migrate",
     "db:seed": "pnpm --filter @jenosize/api run db:seed",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
-    "infra:down": "docker compose -f infra/docker-compose.yml down"
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "prepare": "husky || true"
   },
   "devDependencies": {
-    "typescript": "^5.5.4",
-    "prettier": "^3.3.3"
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,json,md,yml,yaml}": [
+      "prettier --write --ignore-unknown"
+    ]
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+set -e
+
+# Format staged files
+pnpm exec lint-staged
+
+# Workspace-wide gates: cheap to run, catch most regressions before push
+pnpm -r run typecheck
+pnpm -r run lint

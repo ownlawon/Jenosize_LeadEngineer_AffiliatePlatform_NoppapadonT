@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/ownlawon/Jenosize_LeadEngineer_AffiliatePlatform_NoppapadonT/actions/workflows/ci.yml/badge.svg)](https://github.com/ownlawon/Jenosize_LeadEngineer_AffiliatePlatform_NoppapadonT/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/ownlawon/Jenosize_LeadEngineer_AffiliatePlatform_NoppapadonT/actions/workflows/codeql.yml/badge.svg)](https://github.com/ownlawon/Jenosize_LeadEngineer_AffiliatePlatform_NoppapadonT/actions/workflows/codeql.yml)
+![Tests: 31](https://img.shields.io/badge/tests-31%20cases-2ea44f?logo=jest&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-slategray.svg)](LICENSE)
 ![Node ≥20](https://img.shields.io/badge/node-%E2%89%A520-339933?logo=node.js&logoColor=white)
 ![pnpm 9](https://img.shields.io/badge/pnpm-9-F69220?logo=pnpm&logoColor=white)
@@ -10,7 +11,7 @@
 >
 > Affiliate web app that compares prices between **Lazada** and **Shopee**, generates trackable affiliate short links per campaign, and shows click analytics on an admin dashboard.
 
-**Reading order for reviewers:** [`docs/decisions.md`](docs/decisions.md) (8 ADRs · the *why*) → [`docs/architecture.md`](docs/architecture.md) (diagrams + perf) → [`docs/api-recipes.md`](docs/api-recipes.md) (cURL playbook) → [`docs/UAT.md`](docs/UAT.md) (39 acceptance cases).
+**Reading order for reviewers:** [`docs/decisions.md`](docs/decisions.md) (8 ADRs · the _why_) → [`docs/architecture.md`](docs/architecture.md) (diagrams + perf) → [`docs/api-recipes.md`](docs/api-recipes.md) (cURL playbook) → [`docs/UAT.md`](docs/UAT.md) (39 acceptance cases).
 
 ## Demo
 
@@ -95,18 +96,18 @@ sequenceDiagram
 
 ## Tech stack & rationale
 
-| Layer | Choice | Why |
-|-------|--------|-----|
-| Frontend | **Next.js 14** App Router | Server components fetch directly from api; small client bundle; built-in middleware for protected routes |
-| Backend | **NestJS 10** | DI + module boundaries make adapters/auth/jobs cleanly separable; first-class Swagger + class-validator |
-| ORM / DB | **Prisma + Postgres 16** | Type-safe queries; readable migrations |
-| Cache | **Redis** (ioredis) | Sub-ms link lookup; degrades gracefully if unset (in-memory fallback) |
-| Auth | **JWT (bcryptjs cost 12) + httpOnly cookie** | Standard, no third-party needed; first-boot seeded admin |
-| Validation | **class-validator (api) + Zod (shared)** | Runtime safety on every boundary |
-| Charts | **Recharts** | Zero-config bar chart for the dashboard |
-| Testing | **Jest + Supertest** | 20 unit cases (adapters + products service) + 11 e2e (redirect + auth/throttle) |
-| CI | **GitHub Actions** with postgres + redis services | Lint, typecheck, unit, e2e, build all run on every PR |
-| Hosting | **Railway** (per user's choice) | Web + api + worker in one project; managed Postgres + Redis |
+| Layer      | Choice                                            | Why                                                                                                      |
+| ---------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Frontend   | **Next.js 14** App Router                         | Server components fetch directly from api; small client bundle; built-in middleware for protected routes |
+| Backend    | **NestJS 10**                                     | DI + module boundaries make adapters/auth/jobs cleanly separable; first-class Swagger + class-validator  |
+| ORM / DB   | **Prisma + Postgres 16**                          | Type-safe queries; readable migrations                                                                   |
+| Cache      | **Redis** (ioredis)                               | Sub-ms link lookup; degrades gracefully if unset (in-memory fallback)                                    |
+| Auth       | **JWT (bcryptjs cost 12) + httpOnly cookie**      | Standard, no third-party needed; first-boot seeded admin                                                 |
+| Validation | **class-validator (api) + Zod (shared)**          | Runtime safety on every boundary                                                                         |
+| Charts     | **Recharts**                                      | Zero-config bar chart for the dashboard                                                                  |
+| Testing    | **Jest + Supertest**                              | 20 unit cases (adapters + products service) + 11 e2e (redirect + auth/throttle)                          |
+| CI         | **GitHub Actions** with postgres + redis services | Lint, typecheck, unit, e2e, build all run on every PR                                                    |
+| Hosting    | **Railway** (per user's choice)                   | Web + api + worker in one project; managed Postgres + Redis                                              |
 
 ---
 
@@ -154,6 +155,7 @@ pnpm dev       # api on :3001, web on :3000
 ```
 
 Open:
+
 - http://localhost:3000 — landing (Active campaigns)
 - http://localhost:3000/admin/login — `admin@jenosize.test` / `ChangeMe!2025`
 - http://localhost:3001/api/docs — Swagger UI
@@ -177,13 +179,13 @@ Campaign 1──* Link         ──┼── Click       *───1 Link
                              └── Impression  *───1 Link
 ```
 
-| Entity | Fields |
-|--------|--------|
-| `Product` | id, title, imageUrl, createdAt |
-| `Offer` | id, productId, marketplace, storeName, price, currency, externalUrl, externalId, lastCheckedAt — unique(productId, marketplace) |
-| `Campaign` | id, name, utmSource, utmMedium, utmCampaign, startAt, endAt |
-| `Link` | id, productId, campaignId, marketplace, shortCode (unique 6-char nanoid over confusable-free alphabet), targetUrl |
-| `Click` | id, linkId, timestamp, referrer, userAgent, ipHash (sha256, salted) |
+| Entity       | Fields                                                                                                                                                                                               |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Product`    | id, title, imageUrl, createdAt                                                                                                                                                                       |
+| `Offer`      | id, productId, marketplace, storeName, price, currency, externalUrl, externalId, lastCheckedAt — unique(productId, marketplace)                                                                      |
+| `Campaign`   | id, name, utmSource, utmMedium, utmCampaign, startAt, endAt                                                                                                                                          |
+| `Link`       | id, productId, campaignId, marketplace, shortCode (unique 6-char nanoid over confusable-free alphabet), targetUrl                                                                                    |
+| `Click`      | id, linkId, timestamp, referrer, userAgent, ipHash (sha256, salted)                                                                                                                                  |
 | `Impression` | id, linkId, timestamp, referrer, userAgent, ipHash — recorded by IntersectionObserver on the public landing when a product card is ≥50% visible for ≥1s. Backs the `CTR = clicks / impressions` KPI. |
 
 Best-price flag is computed in `ProductsService.markBestPrice()` — pure function, unit-tested.
@@ -194,23 +196,23 @@ Best-price flag is computed in `ProductsService.markBestPrice()` — pure functi
 
 Full schemas live in **Swagger UI** at `/api/docs`. Highlights:
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | `/api/auth/login` | — | Sets httpOnly `access_token` cookie |
-| POST | `/api/auth/logout` | — | Clears cookie |
-| GET | `/api/auth/me` | JWT | Current user |
-| POST | `/api/products` | JWT | Add product from URL or raw SKU; marketplace auto-detected from URL host, or passed explicitly when posting a bare SKU |
-| GET | `/api/products` | — | List with offers + best-price flag |
-| GET | `/api/products/:id/offers` | — | Offers for one product |
-| POST | `/api/campaigns` | JWT | Create campaign with UTM |
-| GET | `/api/campaigns` | — | List (used by public landing) |
-| GET | `/api/campaigns/:id` | — | With linked products + offers |
-| POST | `/api/links` | JWT | Generate short link for product · campaign · marketplace |
-| GET | `/api/links` | JWT | List links with click counts |
-| GET | `/go/:code` | — | **302** redirect to marketplace URL with UTMs appended; logs Click |
-| POST | `/api/impressions` | — | Public batch endpoint (`{ linkIds: string[] }`) called by the landing page when product cards become visible. Backs the CTR KPI. |
-| GET | `/api/dashboard` | JWT | Totals + by-marketplace + by-campaign + last 7 days + **CTR** (clicks ÷ impressions) |
-| GET | `/api/dashboard/top-products` | JWT | Leaderboard by clicks |
+| Method | Path                          | Auth | Description                                                                                                                      |
+| ------ | ----------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/api/auth/login`             | —    | Sets httpOnly `access_token` cookie                                                                                              |
+| POST   | `/api/auth/logout`            | —    | Clears cookie                                                                                                                    |
+| GET    | `/api/auth/me`                | JWT  | Current user                                                                                                                     |
+| POST   | `/api/products`               | JWT  | Add product from URL or raw SKU; marketplace auto-detected from URL host, or passed explicitly when posting a bare SKU           |
+| GET    | `/api/products`               | —    | List with offers + best-price flag                                                                                               |
+| GET    | `/api/products/:id/offers`    | —    | Offers for one product                                                                                                           |
+| POST   | `/api/campaigns`              | JWT  | Create campaign with UTM                                                                                                         |
+| GET    | `/api/campaigns`              | —    | List (used by public landing)                                                                                                    |
+| GET    | `/api/campaigns/:id`          | —    | With linked products + offers                                                                                                    |
+| POST   | `/api/links`                  | JWT  | Generate short link for product · campaign · marketplace                                                                         |
+| GET    | `/api/links`                  | JWT  | List links with click counts                                                                                                     |
+| GET    | `/go/:code`                   | —    | **302** redirect to marketplace URL with UTMs appended; logs Click                                                               |
+| POST   | `/api/impressions`            | —    | Public batch endpoint (`{ linkIds: string[] }`) called by the landing page when product cards become visible. Backs the CTR KPI. |
+| GET    | `/api/dashboard`              | JWT  | Totals + by-marketplace + by-campaign + last 7 days + **CTR** (clicks ÷ impressions)                                             |
+| GET    | `/api/dashboard/top-products` | JWT  | Leaderboard by clicks                                                                                                            |
 
 ---
 

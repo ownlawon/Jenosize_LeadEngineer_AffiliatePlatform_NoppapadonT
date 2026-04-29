@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { Marketplace } from '@prisma/client';
+import { Injectable } from "@nestjs/common";
+import { Marketplace } from "@prisma/client";
+import { stringify } from "csv-stringify/sync";
 
-import { DashboardSummary, TopProduct } from '@jenosize/shared';
-import { PrismaService } from '../../prisma/prisma.service';
+import { DashboardSummary, TopProduct } from "@jenosize/shared";
+import { PrismaService } from "../../prisma/prisma.service";
 
 @Injectable()
 export class DashboardService {
@@ -29,13 +30,17 @@ export class DashboardService {
         where: { startAt: { lte: now }, endAt: { gte: now } },
       }),
       this.prisma.impression.count(),
-      this.prisma.$queryRaw<Array<{ marketplace: Marketplace; clicks: bigint }>>`
+      this.prisma.$queryRaw<
+        Array<{ marketplace: Marketplace; clicks: bigint }>
+      >`
         SELECT l."marketplace" AS marketplace, COUNT(c.*) AS clicks
         FROM "Link" l
         LEFT JOIN "Click" c ON c."linkId" = l."id"
         GROUP BY l."marketplace"
       `,
-      this.prisma.$queryRaw<Array<{ id: string; name: string; clicks: bigint }>>`
+      this.prisma.$queryRaw<
+        Array<{ id: string; name: string; clicks: bigint }>
+      >`
         SELECT cm."id", cm."name", COUNT(c.*) AS clicks
         FROM "Campaign" cm
         LEFT JOIN "Link" l ON l."campaignId" = cm."id"
@@ -93,6 +98,74 @@ export class DashboardService {
       imageUrl: r.image_url,
       clicks: Number(r.clicks),
     }));
+  }
+
+  /**
+   * Export raw click rows joined with product/campaign as CSV. Used by the
+   * "Export CSV" button on the admin dashboard so marketing teams can
+   * import attribution data into spreadsheets / BI tools without standing
+   * up a warehouse pipeline.
+   *
+   * Date range defaults to the last 30 days; window capped at 366 days
+   * so an over-broad query can't OOM the Node process.
+   */
+  async exportClicksCsv(opts: { from?: string; to?: string }): Promise<string> {
+    const now = new Date();
+    const to = opts.to ? new Date(`${opts.to}T23:59:59.999Z`) : now;
+    const defaultFrom = new Date(now);
+    defaultFrom.setUTCDate(defaultFrom.getUTCDate() - 30);
+    const from = opts.from
+      ? new Date(`${opts.from}T00:00:00.000Z`)
+      : defaultFrom;
+
+    const ONE_YEAR_MS = 366 * 24 * 60 * 60 * 1000;
+    if (to.getTime() - from.getTime() > ONE_YEAR_MS) {
+      throw new Error("Date range too wide — max 1 year per export");
+    }
+
+    const clicks = await this.prisma.click.findMany({
+      where: { timestamp: { gte: from, lte: to } },
+      include: {
+        link: {
+          include: {
+            product: { select: { id: true, title: true } },
+            campaign: { select: { id: true, name: true, utmCampaign: true } },
+          },
+        },
+      },
+      orderBy: { timestamp: "asc" },
+    });
+
+    const rows = clicks.map((c) => ({
+      timestamp: c.timestamp.toISOString(),
+      click_id: c.id,
+      short_code: c.link.shortCode,
+      marketplace: c.link.marketplace,
+      product_id: c.link.product.id,
+      product_title: c.link.product.title,
+      campaign_id: c.link.campaign.id,
+      campaign_name: c.link.campaign.name,
+      utm_campaign: c.link.campaign.utmCampaign,
+      referrer: c.referrer ?? "",
+      user_agent: c.userAgent ?? "",
+    }));
+
+    return stringify(rows, {
+      header: true,
+      columns: [
+        "timestamp",
+        "click_id",
+        "short_code",
+        "marketplace",
+        "product_id",
+        "product_title",
+        "campaign_id",
+        "campaign_name",
+        "utm_campaign",
+        "referrer",
+        "user_agent",
+      ],
+    });
   }
 
   /** Pad the last 7 days so the chart shows zeros for empty days. */
